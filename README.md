@@ -1,3 +1,11 @@
+To run the code, type in:
+python trainval_net.py --dataset pascal_voc --net res101 \
+                       --bs 4  --nw 8 \
+                       --lr 0.0001 --lr_decay_step 50 \
+                       --cuda
+Note: need to down the data folder (for pretrained_model and VOCdevkit2007) and possibly create srv/res101/pascal_voc/ the folder if your default system environment doesn't allow create folder in the run.
+
+===================================================================================================
 # A *Faster* Pytorch Implementation of Faster R-CNN
 
 ## Introduction
