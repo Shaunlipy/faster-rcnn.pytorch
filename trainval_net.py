@@ -7,6 +7,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from visdom import Visdom
 import _init_paths
 import os
 import sys
@@ -33,6 +34,46 @@ from model.utils.net_utils import weights_normal_init, save_net, load_net, \
 from model.faster_rcnn.vgg16 import vgg16
 from model.faster_rcnn.resnet import resnet
 
+viz = Visdom()
+# y_rpn_cls = torch.Tensor(torch.zeros(1,))
+# y_rpn_box = torch.Tensor(torch.zeros(1,))
+# y_rcnn_cls = torch.Tensor(torch.zeros(1,))
+# y_rcnn_box = torch.Tensor(torch.zeros(1,))
+
+rpn_cls_lot = viz.line(  
+                X=torch.zeros((1,)),  
+                Y=torch.zeros((1,)),  
+                opts=dict(  
+                        xlabel='epoch',  
+                          ylabel='RPN Cls Loss',  
+                        title='RPN Cls Loss',  
+                        legend=['epoch_loss']))
+rpn_box_lot = viz.line(  
+                X=torch.zeros((1,)),  
+                Y=torch.zeros((1,)),  
+                opts=dict(  
+                        xlabel='epoch',  
+                          ylabel='RPN Box Loss',  
+                        title='RPN Box Loss',  
+                        legend=['epoch_loss']))
+rcnn_cls_lot = viz.line(  
+                X=torch.zeros((1,)),  
+                Y=torch.zeros((1,)),  
+                opts=dict(  
+                        xlabel='epoch',  
+                          ylabel='RCNN Cls Loss',  
+                        title='RCNN Cls Loss',  
+                        legend=['epoch_loss']))
+
+rcnn_box_lot = viz.line(  
+                X=torch.zeros((1,)),  
+                Y=torch.zeros((1,)),  
+                opts=dict(  
+                        xlabel='epoch',  
+                          ylabel='RCNN Box Loss',  
+                        title='RCNN Box Loss',  
+                        legend=['epoch_loss']))
+
 def parse_args():
   """
   Parse input arguments
@@ -58,7 +99,7 @@ def parse_args():
                       default=10000, type=int)
 
   parser.add_argument('--save_dir', dest='save_dir',
-                      help='directory to save models', default="/srv/share/jyang375/models",
+                      help='directory to save models', default="./srv",
                       nargs=argparse.REMAINDER)
   parser.add_argument('--nw', dest='num_workers',
                       help='number of worker to load data',
@@ -205,6 +246,7 @@ if __name__ == '__main__':
   print('{:d} roidb entries'.format(len(roidb)))
 
   output_dir = args.save_dir + "/" + args.net + "/" + args.dataset
+  print ("===> {}".format(output_dir))
   if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
@@ -357,6 +399,31 @@ if __name__ == '__main__':
         print("\t\t\tfg/bg=(%d/%d), time cost: %f" % (fg_cnt, bg_cnt, end-start))
         print("\t\t\trpn_cls: %.4f, rpn_box: %.4f, rcnn_cls: %.4f, rcnn_box %.4f" \
                       % (loss_rpn_cls, loss_rpn_box, loss_rcnn_cls, loss_rcnn_box))
+        # print ('====> {}'.format(type(loss_rpn_cls)))
+        viz.line(
+          X = torch.Tensor([epoch]),
+          Y = torch.FloatTensor([loss_rpn_cls]),
+          win = rpn_cls_lot,
+          update = 'append'
+          )
+        viz.line(
+          X = torch.Tensor([epoch]),
+          Y = torch.FloatTensor([loss_rpn_box]),
+          win = rpn_box_lot,
+          update = 'append'
+          )
+        viz.line(
+          X = torch.Tensor([epoch]),
+          Y = torch.FloatTensor([loss_rcnn_cls]),
+          win = rcnn_cls_lot,
+          update = 'append'
+          )
+        viz.line(
+          X = torch.Tensor([epoch]),
+          Y = torch.FloatTensor([loss_rcnn_box]),
+          win = rcnn_box_lot,
+          update = 'append'
+          )
         if args.use_tfboard:
           info = {
             'loss': loss_temp,
